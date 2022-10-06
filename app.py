@@ -167,8 +167,8 @@ class SecondWindow(QMainWindow):
 
         # 2.2 Timer(QTimer)
         self.timer = QTimer()
+        self.timer.setInterval(1000)
         self.timer.timeout.connect(self.time_count)
-        self.step = 0
 
         # 3. Dropbox
         dropbox_subjects = QComboBox()
@@ -207,8 +207,8 @@ class SecondWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     def time_count(self):
-        self.step = self.step + 1
-        time.sleep(1)
+        self.step = self.progress_bar.value()
+        self.step += 1
         self.progress_bar.setValue(self.step)
 
     def start_progress(self):
@@ -219,7 +219,7 @@ class SecondWindow(QMainWindow):
             dig.exec()
             return
 
-        self.timer.start()
+        self.timer.start(1000)
         now = datetime.now()
         today = now.date()
         print(today)
@@ -274,7 +274,6 @@ class SecondWindow(QMainWindow):
             return
 
         self.timer.stop()
-
         now = datetime.now()
         today = now.date()
         SQL0 = '''
@@ -336,7 +335,6 @@ class SecondWindow(QMainWindow):
                     WHERE study_or_rest = 0
                     ORDER By start_time DESC
                     LIMIT 1;
-                
                 '''
 
                 self.cursor.execute(SQL)
