@@ -25,11 +25,11 @@ class FirstWindow(QMainWindow):
         self.setFixedSize(QSize(400, 600))
 
         # Title (QLabel)
-        label = QLabel("BeYourself")
-        font = label.font()
-        font.setPointSize(30)
-        label.setFont(font)
-        label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        label_title = QLabel("BeYourself")
+        font_title = label_title.font()
+        font_title.setPointSize(30)
+        label_title.setFont(font_title)
+        label_title.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
         # Generated Picture (QLabel)
         picture = QLabel()
@@ -37,46 +37,45 @@ class FirstWindow(QMainWindow):
         picture.setScaledContents(True)
 
         # Feeling Today (QLabel + QCombobox)
-        label1 = QLabel("feeling..")
-        font1 = label1.font()
-        font1.setPointSize(11)
-        label1.setFont(font1)
-        label1.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        label_feeling = QLabel("feeling..")
+        font_inside = label_feeling.font()
+        font_inside.setPointSize(11)
+        label_feeling.setFont(font_inside)
+        label_feeling.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        self.box_feeling = QComboBox()
-        self.box_feeling.addItems(["Terrific!", "Good!", "Bad..", "Depressed.."])
-        self.box_feeling.activated.connect(self.check_index)
+        self.combobox_feeling = QComboBox()
+        self.combobox_feeling.addItems(["Terrific!", "Good!", "Bad..", "Depressed.."])
+        self.combobox_feeling.activated.connect(self.check_index)
 
-        layout_2 = QHBoxLayout()
-        layout_2.addWidget(label1, 2)
-        layout_2.addWidget(self.box_feeling, 8)
+        layout_feeling = QHBoxLayout()
+        layout_feeling.addWidget(label_feeling, 2)
+        layout_feeling.addWidget(self.combobox_feeling, 8)
 
         # Wakeup TIme (QLabel + QCombobox)
-        label2 = QLabel("woke up..")
-        label2.setFont(font1)
-        label2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        label_wakeup = QLabel("woke up..")
+        label_wakeup.setFont(font_inside)
+        label_wakeup.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        self.box_wakeup = QComboBox()
-        self.box_wakeup.addItems(["06:00", "06:30", "07:00", "07:30", "08:00", "08:30~"])
-        self.box_wakeup.activated.connect(self.check_index)
+        self.combobox_wakeup = QComboBox()
+        self.combobox_wakeup.addItems(["06:00", "06:30", "07:00", "07:30", "08:00", "08:30~"])
+        self.combobox_wakeup.activated.connect(self.check_index)
 
-        layout_3 = QHBoxLayout()
-        layout_3.addWidget(label2, 2)
-        layout_3.addWidget(self.box_wakeup, 8)
+        layout_wakeup = QHBoxLayout()
+        layout_wakeup.addWidget(label_wakeup, 2)
+        layout_wakeup.addWidget(self.combobox_wakeup, 8)
 
         # Today's Goal (QLabel + QCombobox)
-        label3 = QLabel("today I'll..")
-        label3.setFont(font1)
-        label3.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        label_goal = QLabel("today I'll..")
+        label_goal.setFont(font_inside)
+        label_goal.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        layout_4 = QHBoxLayout()
-        layout_4.addWidget(label3, 2)
-        layout_4.addWidget(self.box_goal, 8)
+        self.combobox_goal = QComboBox()
+        self.combobox_goal.addItems(["study 6 hours", "study 8 hours", "study 10 hours", "study 12 hours"])
+        self.combobox_goal.activated.connect(self.check_index)
 
-        self.box_goal = QComboBox()
-        self.box_goal.addItems(["study 6 hours", "study 8 hours", "study 10 hours", "study 12 hours"])
-        self.box_wakeup.activated.connect(self.check_index)
-
+        layout_goal = QHBoxLayout()
+        layout_goal.addWidget(label_goal, 2)
+        layout_goal.addWidget(self.combobox_goal, 8)
 
         # Button to Second Page (QPushButton)
         button_start = QPushButton("Let's Go!")
@@ -85,11 +84,11 @@ class FirstWindow(QMainWindow):
 
         # Layout
         layout = QVBoxLayout()
-        layout.addWidget(label, 1)
+        layout.addWidget(label_title, 1)
         layout.addWidget(picture, 4)
-        layout.addLayout(layout_2, 1)
-        layout.addLayout(layout_3, 1)
-        layout.addLayout(layout_4, 1)
+        layout.addLayout(layout_feeling, 1)
+        layout.addLayout(layout_wakeup, 1)
+        layout.addLayout(layout_goal, 1)
         layout.addWidget(button_start, 1)
 
         widget = QWidget()
@@ -101,17 +100,18 @@ class FirstWindow(QMainWindow):
         self.second_window.show()
 
     def check_index(self):
-        index_feeling = self.box_feeling.currentIndex()
-        index_wakeup = self.box_wakeup.currentIndex()
-        index_goal = self.box_goal.currentIndex()
+        index_feeling = self.combobox_feeling.currentIndex()
+        index_wakeup = self.combobox_wakeup.currentIndex()
+        index_goal = self.combobox_goal.currentIndex()
         return (index_feeling, index_wakeup, index_goal)
 
     def make_query_sub(self):
         indices = self.check_index()
         today = datetime.now().date()
+
         today_year = int(str(today)[:4])
         today_month = int(str(today)[5:7])
-        today_day = int(str(today)[9:11])
+        today_day = int(str(today)[8:10])
 
         feeling = indices[0]+1
         wakeup_time = datetime(today_year, today_month, today_day, 6, 00) + timedelta(minutes = 30 * (indices[1]))
@@ -148,41 +148,44 @@ class SecondWindow(QMainWindow):
         self.setWindowTitle("BeYourself")
         self.setFixedSize(QSize(400, 600))
 
-        label = QLabel("BeYourself")
-        font = label.font()
-        font.setPointSize(30)
-        label.setFont(font)
-        label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        # Title(QLabel)
+        label_title = QLabel("BeYourself")
+        font_title = label_title.font()
+        font_title.setPointSize(30)
+        label_title.setFont(font_title)
+        label_title.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
 
-        progress = QLabel("progress!")
-        font1 = progress.font()
-        font1.setPointSize(30)
-        progress.setFont(font1)
+        # 1. Progress(QLabel)
+        label_progress = QLabel("progress!")
+        font_inside = label_progress.font()
+        font_inside.setPointSize(10)
+        label_progress.setFont(font_inside)
 
-        # 1. ProgressBar
-
+        # 2.1 ProgressBar(QProgressBar)
         self.progress_bar = QProgressBar(self)
+        self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+
+        # 2.2 Timer(QTimer)
         self.timer = QTimer()
         self.timer.timeout.connect(self.time_count)
         self.step = 0
 
+        # 3. Dropbox
+        dropbox_subjects = QComboBox()
+        dropbox_subjects.addItems(["Computer Science", "Problem Solving", "Book/Tech Blog", "Project"])
+        self.index = dropbox_subjects.currentIndex()
 
-        # 2. Dropbox
-        box = QComboBox()
-        box.addItems(["Computer Science", "Problem Solving", "Book/Tech Blog", "Project"])
-
-        # 3-1. Button
+        # 4-1. Button
         button_start = QPushButton("Start")
         button_start.clicked.connect(self.start_progress)
 
-        # 3-2. Button
+        # 4-2. Button
         button_stop = QPushButton("End")
         button_stop.clicked.connect(self.stop_progress)
 
-
-        layout_1 = QHBoxLayout()
-        layout_1.addWidget(button_start)
-        layout_1.addWidget(button_stop)
+        layout_buttons = QHBoxLayout()
+        layout_buttons.addWidget(button_start)
+        layout_buttons.addWidget(button_stop)
 
         # 4. Button
         button_stats = QPushButton("Statistics")
@@ -192,10 +195,10 @@ class SecondWindow(QMainWindow):
         button_final.clicked.connect(self.button_final_clicked)
 
         layout = QVBoxLayout()
-        layout.addWidget(label)
-        # layout.addWidget(self.progress_bar, 4)
-        layout.addWidget(box)
-        layout.addLayout(layout_1)
+        layout.addWidget(label_title)
+        layout.addWidget(self.progress_bar, 4)
+        layout.addWidget(dropbox_subjects)
+        layout.addLayout(layout_buttons)
         layout.addWidget(button_stats)
         layout.addWidget(button_final)
 
@@ -229,7 +232,6 @@ class SecondWindow(QMainWindow):
             pass
 
         else:
-            print('x')
             SQL0 = '''
                 SELECT start_time
                 FROM main
@@ -255,11 +257,11 @@ class SecondWindow(QMainWindow):
             rew = self.cursor.fetchone()
 
         SQL3 = f'''
-            INSERT INTO main (date_, study_or_rest, start_time, end_time, net_time)
-            VALUES (%s, %s, %s, %s, %s);
+            INSERT INTO main (date_, study_or_rest, study_category, start_time, end_time, net_time)
+            VALUES (%s, %s, %s, %s, %s, %s);
         '''
 
-        self.cursor.execute(SQL3, [today, 1, now, None, None ])
+        self.cursor.execute(SQL3, [today, 1, self.index+1, now, None, None ])
         self.conn.commit()
         row = self.cursor.fetchone()
 
@@ -279,7 +281,7 @@ class SecondWindow(QMainWindow):
             SELECT start_time
             FROM main
             WHERE end_time IS NULL AND study_or_rest = 1
-        '''
+            '''
         self.cursor.execute(SQL0)
         self.conn.commit()
         row = self.cursor.fetchone()
@@ -291,7 +293,7 @@ class SecondWindow(QMainWindow):
                 UPDATE main
                 SET end_time = %s, net_time = %s
                 WHERE end_time IS NULL AND study_or_rest = 1;
-        '''
+                '''
 
         self.cursor.execute(SQL1, [now, diff])
         self.conn.commit()
@@ -299,11 +301,11 @@ class SecondWindow(QMainWindow):
 
 
         SQL2 =  '''
-            INSERT INTO main (date_, study_or_rest, start_time, end_time, net_time)
-            VALUES (%s, %s, %s, %s, %s);
+            INSERT INTO main (date_, study_or_rest, study_category, start_time, end_time, net_time)
+            VALUES (%s, %s, %s, %s, %s,%s);
         '''
 
-        self.cursor.execute(SQL2, [today, 0, now, None, None])
+        self.cursor.execute(SQL2, [today, 0, 0, now, None, None])
         self.conn.commit()
         row = self.cursor.fetchone()
 
