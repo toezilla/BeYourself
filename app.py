@@ -2,13 +2,11 @@ import sys
 import pymysql.cursors
 from image_generator import ImageGenerator
 from settings import GetDB, DBInfo
-import time
-
 from PyQt6.QtCore import QSize, Qt, QTimer
 from PyQt6.QtWidgets import QMessageBox, QDialog, QProgressBar, QComboBox, QApplication, QMainWindow, QPushButton, QWidget, QVBoxLayout, QGridLayout, QHBoxLayout, QLabel
 from PyQt6.QtGui import QPixmap, QPalette, QColor
-
 from datetime import datetime, timedelta
+
 
 class FirstWindow(QMainWindow):
 
@@ -103,42 +101,53 @@ class FirstWindow(QMainWindow):
         index_feeling = self.combobox_feeling.currentIndex()
         index_wakeup = self.combobox_wakeup.currentIndex()
         index_goal = self.combobox_goal.currentIndex()
+        print(index_feeling, index_wakeup, index_goal)
         return (index_feeling, index_wakeup, index_goal)
 
     def make_query_sub(self):
-        indices = self.check_index()
         today = datetime.now().date()
-
-        today_year = int(str(today)[:4])
-        today_month = int(str(today)[5:7])
-        today_day = int(str(today)[8:10])
-
-        feeling = indices[0]+1
-        wakeup_time = datetime(today_year, today_month, today_day, 6, 00) + timedelta(minutes = 30 * (indices[1]))
-        goal_time = 2*indices[2]+6
-
-        SQL = f'''
-            INSERT INTO sub (date_, feeling, wakeup_time, goal_time)
-            VALUES (%s, %s, %s, %s);
-        '''
-
-        self.cursor.execute(SQL, [today, feeling, wakeup_time, goal_time])
+        check_SQL = f'''
+                SELECT *
+                FROM sub
+                WHERE date_ = {today}
+                '''
+        self.cursor.execute(check_SQL)
         self.conn.commit()
         row = self.cursor.fetchone()
+
+        if row is not None:
+            indices = self.check_index()
+
+            today_year = int(str(today)[:4])
+            today_month = int(str(today)[5:7])
+            today_day = int(str(today)[8:10])
+
+            feeling = indices[0]+1
+            wakeup_time = datetime(today_year, today_month, today_day, 6, 00) + timedelta(minutes = 30 * (indices[1]))
+            goal_time = 2*indices[2]+6
+
+            SQL = f'''
+                INSERT INTO sub (date_, feeling, wakeup_time, goal_time)
+                VALUES (%s, %s, %s, %s);
+            '''
+
+            self.cursor.execute(SQL, [today, feeling, wakeup_time, goal_time])
+            self.conn.commit()
+            row = self.cursor.fetchone()
 
 
 class SecondWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setupUI()
         self.conn = GetDB().conn
         self.cursor = self.conn.cursor(pymysql.cursors.DictCursor)
+        self.setupUI()
 
     def get_goal_time(self):
         today = datetime.now().date()
-        SQL = "SELECT goal_time FROM sub WHERE date_ = %s;"
-        self.cursor.execute(SQL, [today])
+        SQL = "SELECT goal_time FROM sub ORDER BY id LIMIT 1;"
+        self.cursor.execute(SQL)
         self.conn.commit()
         row = self.cursor.fetchone()
         return int(row['goal_time'])
@@ -161,6 +170,7 @@ class SecondWindow(QMainWindow):
         font_inside.setPointSize(10)
         label_progress.setFont(font_inside)
 
+
         # 2.1 ProgressBar(QProgressBar)
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -171,9 +181,9 @@ class SecondWindow(QMainWindow):
         self.timer.timeout.connect(self.time_count)
 
         # 3. Dropbox
-        dropbox_subjects = QComboBox()
-        dropbox_subjects.addItems(["Computer Science", "Problem Solving", "Book/Tech Blog", "Project"])
-        self.index = dropbox_subjects.currentIndex()
+        self.dropbox_subjects = QComboBox()
+        self.dropbox_subjects.addItems(["Computer Science", "Problem Solving", "Book/Tech Blog", "Project"])
+
 
         # 4-1. Button
         button_start = QPushButton("Start")
@@ -197,7 +207,7 @@ class SecondWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(label_title)
         layout.addWidget(self.progress_bar, 4)
-        layout.addWidget(dropbox_subjects)
+        layout.addWidget(self.dropbox_subjects)
         layout.addLayout(layout_buttons)
         layout.addWidget(button_stats)
         layout.addWidget(button_final)
@@ -219,10 +229,10 @@ class SecondWindow(QMainWindow):
             dig.exec()
             return
 
+        self.progress_bar.setMaximum(self.get_goal_time() * 3600)
         self.timer.start(1000)
         now = datetime.now()
         today = now.date()
-        print(today)
         SQL5 = f"SELECT * FROM main WHERE date_ = %s ORDER BY start_time DESC LIMIT 1;"
         self.cursor.execute(SQL5, [today])
         self.conn.commit()
@@ -232,35 +242,46 @@ class SecondWindow(QMainWindow):
             pass
 
         else:
-            SQL0 = '''
-                SELECT start_time
-                FROM main
-                WHERE end_time IS NULL AND study_or_rest = 0
-                ORDER BY start_time DESC
-                LIMIT 1;
-            '''
-            self.cursor.execute(SQL0)
+            SQL6 = '''
+                    SELECT *
+                    FROM main
+                    ORDER BY ID
+                    LIMIT 1;
+                    '''
+            self.cursor.execute(SQL5, [today])
             self.conn.commit()
-            row = self.cursor.fetchone()
+            row1 = self.cursor.fetchone()
 
-            past = row['start_time']
-            diff = (now - past).seconds
+            if row1['study_or_rest'] == 0:
+                SQL0 = '''
+                    SELECT start_time
+                    FROM main
+                    ORDER BY id DESC
+                    LIMIT 1;
+                '''
+                self.cursor.execute(SQL0)
+                self.conn.commit()
+                row2 = self.cursor.fetchone()
 
-            SQL1 = f'''
-                    UPDATE main
-                    SET end_time = %s, net_time = %s
-                    WHERE end_time IS NULL AND study_or_rest = 0;
-            '''
+                past = row2['start_time']
+                diff = (now - past).seconds
 
-            self.cursor.execute(SQL1, [now, diff])
-            self.conn.commit()
-            rew = self.cursor.fetchone()
+                SQL1 = f'''
+                        UPDATE main
+                        SET end_time = %s, net_time = %s
+                        WHERE end_time IS NULL AND study_or_rest = 0;
+                '''
+
+                self.cursor.execute(SQL1, [now, diff])
+                self.conn.commit()
+                rew = self.cursor.fetchone()
 
         SQL3 = f'''
             INSERT INTO main (date_, study_or_rest, study_category, start_time, end_time, net_time)
             VALUES (%s, %s, %s, %s, %s, %s);
         '''
 
+        self.index = self.dropbox_subjects.currentIndex()
         self.cursor.execute(SQL3, [today, 1, self.index+1, now, None, None ])
         self.conn.commit()
         row = self.cursor.fetchone()
@@ -286,7 +307,7 @@ class SecondWindow(QMainWindow):
         row = self.cursor.fetchone()
 
         past = row['start_time']
-        diff = (now-past).seconds
+        diff = (now-past)
 
         SQL1 = f'''
                 UPDATE main
@@ -308,8 +329,6 @@ class SecondWindow(QMainWindow):
         self.conn.commit()
         row = self.cursor.fetchone()
 
-
-
     def button_final_clicked(self, clicked):
         if self.timer.isActive():
             dig = QMessageBox(self)
@@ -319,7 +338,6 @@ class SecondWindow(QMainWindow):
         else:
             now = datetime.now()
             today = now.date()
-            print(today)
             SQL5 = f"SELECT * FROM main WHERE date_ = %s ORDER BY start_time DESC LIMIT 1;"
             self.cursor.execute(SQL5, [today])
             self.conn.commit()
@@ -340,7 +358,6 @@ class SecondWindow(QMainWindow):
                 self.cursor.execute(SQL)
                 self.conn.commit()
                 row = self.cursor.fetchone()
-
 
             dig = QMessageBox(self)
             dig.setWindowTitle("BYE!")
